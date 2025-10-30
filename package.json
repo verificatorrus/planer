@@ -9,9 +9,17 @@
 		"lint": "eslint .",
 		"preview": "npm run build && vite preview",
 		"deploy": "npm run build && wrangler deploy",
-		"cf-typegen": "wrangler types"
+		"cf-typegen": "wrangler types",
+		"cap:sync": "cap sync",
+		"cap:open:android": "cap open android",
+		"cap:run:android": "cap run android",
+		"cap:build:android": "npm run build && cap sync android",
+		"android": "npm run cap:build:android && npm run cap:open:android"
 	},
 	"dependencies": {
+		"@capacitor/android": "^7.4.4",
+		"@capacitor/cli": "^7.4.4",
+		"@capacitor/core": "^7.4.4",
 		"react": "^19.1.1",
 		"react-dom": "^19.1.1"
 	},

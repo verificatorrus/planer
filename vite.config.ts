@@ -6,4 +6,10 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), cloudflare()],
+  // Capacitor uses file:// protocol, so we need to use relative paths
+  base: './',
+  server: {
+    // Allow access from mobile devices on local network
+    host: true,
+  },
 })
