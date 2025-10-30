@@ -1,69 +1,142 @@
-# React + TypeScript + Vite
+# Planer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Мобильное приложение-планер, построенное на современном технологическом стеке.
 
-Currently, two official plugins are available:
+## Технологии
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: React 19 + TypeScript + Vite
+- **Backend**: Cloudflare Workers
+- **Mobile**: Capacitor (Android)
+- **Build Tools**: Vite 7, Wrangler 4
 
-## Expanding the ESLint configuration
+## Структура проекта
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+planer/
+├── src/                    # React frontend source code
+│   ├── App.tsx            # Main application component
+│   ├── main.tsx           # Application entry point
+│   └── assets/            # Static assets (images, styles)
+├── worker/                # Cloudflare Worker backend
+│   └── index.ts           # Worker API handler
+├── android/               # Native Android application
+├── dist/                  # Build output
+│   ├── client/            # Frontend build
+│   └── planer/            # Worker build
+├── capacitor.config.ts    # Capacitor configuration
+├── wrangler.jsonc         # Cloudflare Workers configuration
+└── vite.config.ts         # Vite configuration
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Требования
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Node.js 18+
+- npm или yarn
+- (Опционально) Android Studio для разработки мобильного приложения
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Установка
+
+```bash
+npm install
 ```
+
+## Разработка
+
+### Локальный запуск (с HMR)
+
+```bash
+npm run dev
+```
+
+Приложение будет доступно по адресу `http://localhost:5173`
+
+### Превью продакшен-билда
+
+```bash
+npm run preview
+```
+
+## Сборка
+
+```bash
+npm run build
+```
+
+Собранные файлы появятся в директории `dist/`:
+- `dist/client/` - фронтенд приложение
+- `dist/planer/` - Cloudflare Worker
+
+## Деплой
+
+### Cloudflare Workers
+
+```bash
+npm run deploy
+```
+
+Эта команда:
+1. Соберет проект
+2. Задеплоит Worker и статические ассеты на Cloudflare
+
+### Генерация типов для Cloudflare
+
+```bash
+npm run cf-typegen
+```
+
+## Мобильное приложение (Android)
+
+### Синхронизация с Capacitor
+
+```bash
+npm run cap:sync
+```
+
+### Сборка и открытие в Android Studio
+
+```bash
+npm run android
+```
+
+Эта команда:
+1. Соберет веб-приложение
+2. Синхронизирует с Capacitor
+3. Откроет проект в Android Studio
+
+### Другие команды для Android
+
+```bash
+# Только открыть в Android Studio
+npm run cap:open:android
+
+# Собрать и синхронизировать без открытия
+npm run cap:build:android
+
+# Запустить на устройстве/эмуляторе
+npm run cap:run:android
+```
+
+## API
+
+Backend реализован как Cloudflare Worker и предоставляет REST API:
+
+- `GET /api/` - пример endpoint, возвращает `{ name: "Cloudflare" }`
+
+Редактируйте `worker/index.ts` для добавления новых endpoint'ов.
+
+## Линтинг
+
+```bash
+npm run lint
+```
+
+## Конфигурация
+
+- **Vite**: `vite.config.ts` - конфигурация сборщика и dev-сервера
+- **Cloudflare**: `wrangler.jsonc` - конфигурация Worker'а
+- **Capacitor**: `capacitor.config.ts` - настройки нативного приложения
+- **ESLint**: `eslint.config.js` - правила линтера
+
+## Лицензия
+
+Private
