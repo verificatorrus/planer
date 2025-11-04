@@ -277,7 +277,7 @@ function App() {
 
         {/* Cards */}
         <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card>
               <CardMedia
                 component="div"
@@ -306,7 +306,7 @@ function App() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -329,7 +329,7 @@ function App() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -354,7 +354,7 @@ function App() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card sx={{ bgcolor: 'success.light' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -367,7 +367,7 @@ function App() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card sx={{ bgcolor: 'warning.light' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -385,7 +385,7 @@ function App() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -405,7 +405,7 @@ function App() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card sx={{ bgcolor: 'info.light' }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
@@ -510,7 +510,7 @@ function App() {
           <BottomNavigation
             showLabels
             value={bottomNavValue}
-            onChange={(event, newValue) => {
+            onChange={(_event, newValue) => {
               setBottomNavValue(newValue)
             }}
           >
