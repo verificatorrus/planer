@@ -12,6 +12,9 @@
 	},
 	"observability": {
 		"enabled": true
+	},
+	"vars": {
+		"MY_NAME": "Egor"
 	}
 	/**
 	 * Smart Placement
