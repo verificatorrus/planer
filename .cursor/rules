@@ -1,0 +1,50 @@
+# Project Rules for Planer App
+
+## Technology Stack
+This project uses the following technology stack:
+- **Frontend**: Vite + React + TypeScript
+- **UI Framework**: Material-UI (MUI)
+- **Backend**: Cloudflare Workers with Hono framework
+- **Database**: Cloudflare D1 (SQLite)
+- **Authentication**: Firebase Auth with JWT tokens
+- **Mobile**: Capacitor for Android builds
+
+## Code Standards
+- All new code must use TypeScript with strict type checking
+- Use functional components with React hooks
+- Follow Material-UI design patterns and components
+- Maintain existing project structure and conventions
+
+## API Development
+- All API routes must be implemented using Hono router
+- Use D1 prepared statements for all database queries to prevent SQL injection
+- Implement proper error handling with appropriate HTTP status codes
+- JWT tokens must be validated on protected routes
+
+## Database
+- Use migrations for all schema changes (located in /migrations)
+- Follow existing naming conventions for tables and columns
+- Always use prepared statements for queries
+
+## Dependencies
+- Before adding any new npm package, verify it's compatible with Cloudflare Workers
+- Prefer lightweight packages to minimize bundle size
+- Check if functionality can be achieved with existing dependencies first
+
+## Testing & Deployment
+- Test locally using Wrangler for Workers development
+- Ensure compatibility with both web and Android (Capacitor) platforms
+- Verify D1 database operations work correctly before deploying
+
+## File Organization
+- Worker code goes in /worker directory
+- React components in /src directory
+- Database migrations in /migrations directory
+- Build outputs in /dist directory (not committed to git)
+
+## Important Notes
+- Never modify authentication flow without explicit approval
+- Preserve all existing functionality when making changes
+- Keep code simple and maintainable
+- Do not create helper scripts or temporary files unless explicitly requested
+
