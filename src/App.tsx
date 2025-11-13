@@ -44,10 +44,16 @@ import {
   Dashboard as DashboardIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material'
+import { AuthProvider } from './context/AuthContext'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { useAuth } from './context/AuthContext'
 import './App.css'
 
-function App() {
+function AppContent() {
+  const { user, logout } = useAuth()
+  
   // Определяем системные предпочтения темы
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
   
@@ -113,6 +119,10 @@ function App() {
     })
   }
 
+  const handleLogout = async () => {
+    await logout()
+  }
+
   const getThemeIcon = () => {
     if (themeMode === 'dark') return <DarkModeIcon />
     if (themeMode === 'light') return <LightModeIcon />
@@ -160,6 +170,17 @@ function App() {
             <ListItemText 
               primary={getThemeLabel()}
               secondary={themeMode === 'system' ? 'Следует за системой' : ''}
+            />
+          </ListItemButton>
+        </ListItem>
+        <ListItem>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemIcon>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Выйти"
+              secondary={user?.email}
             />
           </ListItemButton>
         </ListItem>
@@ -223,25 +244,35 @@ function App() {
             </Badge>
           </IconButton>
           
-          <Badge
-            overlap="circular"
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            badgeContent={
-              <Box
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  bgcolor: 'success.main',
-                  border: '2px solid white',
-                }}
-              />
-            }
-          >
-            <Avatar alt="User Avatar" src="/broken-image.jpg" sx={{ bgcolor: 'secondary.main' }}>
-              U
-            </Avatar>
-          </Badge>
+          <Tooltip title={user?.email || 'User'}>
+            <Badge
+              overlap="circular"
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              badgeContent={
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    bgcolor: 'success.main',
+                    border: '2px solid white',
+                  }}
+                />
+              }
+            >
+              <Avatar alt="User Avatar" src="/broken-image.jpg" sx={{ bgcolor: 'secondary.main' }}>
+                {user?.email?.[0]?.toUpperCase() || 'U'}
+              </Avatar>
+            </Badge>
+          </Tooltip>
+          
+          {!isMobile && (
+            <Tooltip title="Выйти">
+              <IconButton color="inherit" onClick={handleLogout} sx={{ ml: 1 }}>
+                <LogoutIcon />
+              </IconButton>
+            </Tooltip>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -523,6 +554,16 @@ function App() {
       )}
       </Box>
     </ThemeProvider>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ProtectedRoute>
+        <AppContent />
+      </ProtectedRoute>
+    </AuthProvider>
   )
 }
 

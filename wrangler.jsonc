@@ -15,7 +15,8 @@
 		"enabled": true
 	},
 	"vars": {
-		"MY_NAME": "Egor"
+		"MY_NAME": "Egor",
+		"PUBLIC_JWK_CACHE_KEY": "firebase-auth-jwk-cache"
 	},
 	/**
 	 * D1 Database
@@ -26,6 +27,16 @@
 			"binding": "DB",
 			"database_name": "planer-db",
 			"database_id": "b76a6cd6-0697-4e0f-a65a-62f0d1eea0db"
+		}
+	],
+	/**
+	 * KV Namespaces for Firebase Auth public key caching
+	 * https://developers.cloudflare.com/kv/
+	 */
+	"kv_namespaces": [
+		{
+			"binding": "PUBLIC_JWK_CACHE_KV",
+			"id": "add86b2f4dca4439b0afe753fa1d3553"
 		}
 	]
 	/**
