@@ -3,8 +3,8 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  User
 } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
 const TOKEN_KEY = 'firebase_auth_token';

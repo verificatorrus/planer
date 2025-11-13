@@ -1,13 +1,14 @@
 import { getToken, refreshToken } from './authService';
 
 export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public data?: any
-  ) {
+  public status: number;
+  public data?: any;
+
+  constructor(message: string, status: number, data?: any) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
   }
 }
 
@@ -21,10 +22,17 @@ export const apiClient = {
   async fetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
     const { skipAuth, ...fetchOptions } = options;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...fetchOptions.headers,
     };
+
+    // Merge existing headers
+    if (fetchOptions.headers) {
+      const existingHeaders = new Headers(fetchOptions.headers);
+      existingHeaders.forEach((value, key) => {
+        headers[key] = value;
+      });
+    }
 
     // Add Authorization header if not skipped
     if (!skipAuth) {
