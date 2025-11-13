@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  sendEmailVerification,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -30,8 +31,17 @@ export const removeToken = () => {
 export const signUp = async (email: string, password: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await saveToken(userCredential.user);
-    return { success: true, user: userCredential.user };
+    
+    // Send email verification
+    await sendEmailVerification(userCredential.user);
+    
+    // Don't save token yet - user needs to verify email first
+    return { 
+      success: true, 
+      user: userCredential.user,
+      requiresEmailVerification: true,
+      message: 'Verification email sent. Please check your inbox and verify your email before signing in.'
+    };
   } catch (error) {
     console.error('Sign up error:', error);
     return { 
@@ -45,6 +55,18 @@ export const signUp = async (email: string, password: string) => {
 export const signIn = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    // Check if email is verified
+    if (!userCredential.user.emailVerified) {
+      // Sign out immediately if email not verified
+      await firebaseSignOut(auth);
+      return { 
+        success: false, 
+        error: 'Please verify your email before signing in. Check your inbox for the verification link.',
+        requiresEmailVerification: true
+      };
+    }
+    
     await saveToken(userCredential.user);
     return { success: true, user: userCredential.user };
   } catch (error) {
@@ -74,12 +96,13 @@ export const signOut = async () => {
 // Listen to auth state changes
 export const onAuthChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, async (user) => {
-    if (user) {
+    if (user && user.emailVerified) {
       await saveToken(user);
+      callback(user);
     } else {
       removeToken();
+      callback(null);
     }
-    callback(user);
   });
 };
 
@@ -95,5 +118,38 @@ export const refreshToken = async () => {
     return await saveToken(user);
   }
   return null;
+};
+
+// Resend verification email
+export const resendVerificationEmail = async (email: string, password: string) => {
+  try {
+    // Sign in to get the user object
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    if (userCredential.user.emailVerified) {
+      await firebaseSignOut(auth);
+      return { 
+        success: false, 
+        error: 'Email is already verified. You can sign in now.' 
+      };
+    }
+    
+    // Send verification email
+    await sendEmailVerification(userCredential.user);
+    
+    // Sign out after sending email
+    await firebaseSignOut(auth);
+    
+    return { 
+      success: true, 
+      message: 'Verification email sent. Please check your inbox.' 
+    };
+  } catch (error) {
+    console.error('Resend verification email error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to resend verification email' 
+    };
+  }
 };
 

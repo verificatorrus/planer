@@ -21,12 +21,14 @@ export const Register = ({ onToggleMode }: RegisterProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -44,6 +46,12 @@ export const Register = ({ onToggleMode }: RegisterProps) => {
       const result = await register(email, password);
       if (!result.success) {
         setError(result.error || 'Failed to create account');
+      } else if (result.message) {
+        setSuccess(result.message);
+        // Clear form after successful registration
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -75,6 +83,12 @@ export const Register = ({ onToggleMode }: RegisterProps) => {
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
             </Alert>
           )}
 

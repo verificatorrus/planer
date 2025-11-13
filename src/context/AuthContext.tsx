@@ -6,8 +6,17 @@ import { onAuthChange, signIn, signUp, signOut } from '../services/authService';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ 
+    success: boolean; 
+    error?: string; 
+    requiresEmailVerification?: boolean;
+  }>;
+  register: (email: string, password: string) => Promise<{ 
+    success: boolean; 
+    error?: string; 
+    message?: string;
+    requiresEmailVerification?: boolean;
+  }>;
   logout: () => Promise<void>;
 }
 
@@ -43,15 +52,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (result.success && result.user) {
       setUser(result.user);
     }
-    return result;
+    return {
+      success: result.success,
+      error: result.error,
+      requiresEmailVerification: result.requiresEmailVerification,
+    };
   };
 
   const register = async (email: string, password: string) => {
     const result = await signUp(email, password);
-    if (result.success && result.user) {
-      setUser(result.user);
-    }
-    return result;
+    // Don't set user on registration - they need to verify email first
+    return {
+      success: result.success,
+      error: result.error,
+      message: result.message,
+      requiresEmailVerification: result.requiresEmailVerification,
+    };
   };
 
   const logout = async () => {

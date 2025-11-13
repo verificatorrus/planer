@@ -11,6 +11,7 @@ import {
   Link,
 } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
+import { resendVerificationEmail } from '../../services/authService';
 
 interface LoginProps {
   onToggleMode: () => void;
@@ -20,24 +21,57 @@ export const Login = ({ onToggleMode }: LoginProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+    setNeedsVerification(false);
     setLoading(true);
 
     try {
       const result = await login(email, password);
       if (!result.success) {
         setError(result.error || 'Failed to login');
+        if (result.requiresEmailVerification) {
+          setNeedsVerification(true);
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred');
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email || !password) {
+      setError('Please enter your email and password');
+      return;
+    }
+
+    setResendingEmail(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await resendVerificationEmail(email, password);
+      if (result.success) {
+        setSuccess(result.message || 'Verification email sent!');
+      } else {
+        setError(result.error || 'Failed to send verification email');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+      console.error(err);
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -63,6 +97,28 @@ export const Login = ({ onToggleMode }: LoginProps) => {
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+
+          {needsVerification && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                Your email is not verified yet.
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleResendVerification}
+                disabled={resendingEmail}
+              >
+                {resendingEmail ? <CircularProgress size={20} /> : 'Resend Verification Email'}
+              </Button>
             </Alert>
           )}
 
