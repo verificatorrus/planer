@@ -32,8 +32,13 @@ export const signUp = async (email: string, password: string) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     
-    // Send email verification
-    await sendEmailVerification(userCredential.user);
+    // Send email verification with redirect URL
+    const actionCodeSettings = {
+      url: 'https://planer.quicpro.workers.dev/',
+      handleCodeInApp: false,
+    };
+    
+    await sendEmailVerification(userCredential.user, actionCodeSettings);
     
     // Don't save token yet - user needs to verify email first
     return { 
@@ -134,8 +139,13 @@ export const resendVerificationEmail = async (email: string, password: string) =
       };
     }
     
-    // Send verification email
-    await sendEmailVerification(userCredential.user);
+    // Send verification email with redirect URL
+    const actionCodeSettings = {
+      url: 'https://planer.quicpro.workers.dev/',
+      handleCodeInApp: false,
+    };
+    
+    await sendEmailVerification(userCredential.user, actionCodeSettings);
     
     // Sign out after sending email
     await firebaseSignOut(auth);
