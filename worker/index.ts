@@ -22,6 +22,26 @@ app.get('/api/health', async (c) => {
 // Apply Firebase Auth middleware to all /api/* routes except health check
 app.use('/api/*', verifyFirebaseAuth(config));
 
+// Middleware to check email verification for all protected routes
+app.use('/api/*', async (c, next) => {
+  // Skip verification check for certain endpoints
+  const path = new URL(c.req.url).pathname;
+  if (path === '/api/health' || path === '/api/auth/me') {
+    return next();
+  }
+  
+  const idToken = getFirebaseToken(c);
+  if (idToken && !idToken.email_verified) {
+    return c.json({
+      success: false,
+      error: 'Email not verified. Please verify your email to access this resource.',
+      requiresEmailVerification: true,
+    }, 403);
+  }
+  
+  return next();
+});
+
 // Get current user info (protected)
 app.get('/api/auth/me', async (c) => {
   const idToken = getFirebaseToken(c);
@@ -31,6 +51,15 @@ app.get('/api/auth/me', async (c) => {
       success: false,
       error: 'Unauthorized',
     }, 401);
+  }
+  
+  // Check if email is verified
+  if (!idToken.email_verified) {
+    return c.json({
+      success: false,
+      error: 'Email not verified. Please verify your email to access this resource.',
+      requiresEmailVerification: true,
+    }, 403);
   }
   
   return c.json({

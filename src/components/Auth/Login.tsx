@@ -15,9 +15,10 @@ import { resendVerificationEmail } from '../../services/authService';
 
 interface LoginProps {
   onToggleMode: () => void;
+  onForgotPassword: () => void;
 }
 
-export const Login = ({ onToggleMode }: LoginProps) => {
+export const Login = ({ onToggleMode, onForgotPassword }: LoginProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -157,6 +158,15 @@ export const Login = ({ onToggleMode }: LoginProps) => {
           </form>
 
           <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Link
+              component="button"
+              variant="body2"
+              onClick={onForgotPassword}
+              sx={{ cursor: 'pointer', mb: 2, display: 'block' }}
+            >
+              Forgot Password?
+            </Link>
+            
             <Typography variant="body2">
               Don't have an account?{' '}
               <Link

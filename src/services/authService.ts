@@ -4,6 +4,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -162,4 +163,28 @@ export const resendVerificationEmail = async (email: string, password: string) =
     };
   }
 };
+
+// Reset password
+export const resetPassword = async (email: string) => {
+  try {
+    const actionCodeSettings = {
+      url: 'https://planer.quicpro.workers.dev/',
+      handleCodeInApp: false,
+    };
+    
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    
+    return { 
+      success: true, 
+      message: 'Password reset email sent. Please check your inbox and follow the instructions.' 
+    };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to send password reset email' 
+    };
+  }
+};
+
 

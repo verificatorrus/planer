@@ -1,16 +1,33 @@
 import { useState } from 'react';
 import { Login } from './Login';
 import { Register } from './Register';
+import { ForgotPassword } from './ForgotPassword';
+
+type AuthMode = 'login' | 'register' | 'forgot-password';
 
 export const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
 
-  const toggleMode = () => setIsLogin(!isLogin);
+  const handleToggleMode = () => {
+    setMode(mode === 'login' ? 'register' : 'login');
+  };
 
-  return isLogin ? (
-    <Login onToggleMode={toggleMode} />
+  const handleForgotPassword = () => {
+    setMode('forgot-password');
+  };
+
+  const handleBackToLogin = () => {
+    setMode('login');
+  };
+
+  if (mode === 'forgot-password') {
+    return <ForgotPassword onBackToLogin={handleBackToLogin} />;
+  }
+
+  return mode === 'login' ? (
+    <Login onToggleMode={handleToggleMode} onForgotPassword={handleForgotPassword} />
   ) : (
-    <Register onToggleMode={toggleMode} />
+    <Register onToggleMode={handleToggleMode} />
   );
 };
 
