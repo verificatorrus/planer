@@ -9,16 +9,27 @@ import {
   Alert,
   CircularProgress,
   Link,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import {
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
+  Settings as SettingsIcon,
+} from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { resendVerificationEmail } from '../../services/authService';
+import type { ThemeMode } from '../../hooks/useThemeMode';
 
 interface LoginProps {
   onToggleMode: () => void;
   onForgotPassword: () => void;
+  toggleTheme: () => void;
+  themeMode: ThemeMode;
+  activeMode: 'light' | 'dark';
 }
 
-export const Login = ({ onToggleMode, onForgotPassword }: LoginProps) => {
+export const Login = ({ onToggleMode, onForgotPassword, toggleTheme, themeMode }: LoginProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -86,7 +97,20 @@ export const Login = ({ onToggleMode, onForgotPassword }: LoginProps) => {
         bgcolor: 'background.default',
       }}
     >
-      <Card sx={{ maxWidth: 400, width: '100%', m: 2 }}>
+      <Card sx={{ maxWidth: 400, width: '100%', m: 2, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tooltip title={
+            themeMode === 'dark' ? 'Dark theme' : 
+            themeMode === 'light' ? 'Light theme' : 
+            'System theme'
+          }>
+            <IconButton onClick={toggleTheme} color="primary">
+              {themeMode === 'dark' ? <DarkModeIcon /> : 
+               themeMode === 'light' ? <LightModeIcon /> : 
+               <SettingsIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Sign In

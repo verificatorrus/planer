@@ -9,14 +9,25 @@ import {
   Alert,
   CircularProgress,
   Link,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import {
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
+  Settings as SettingsIcon,
+} from '@mui/icons-material';
 import { resetPassword } from '../../services/authService';
+import type { ThemeMode } from '../../hooks/useThemeMode';
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void;
+  toggleTheme: () => void;
+  themeMode: ThemeMode;
+  activeMode: 'light' | 'dark';
 }
 
-export const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
+export const ForgotPassword = ({ onBackToLogin, toggleTheme, themeMode }: ForgotPasswordProps) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -55,7 +66,20 @@ export const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
         bgcolor: 'background.default',
       }}
     >
-      <Card sx={{ maxWidth: 400, width: '100%', m: 2 }}>
+      <Card sx={{ maxWidth: 400, width: '100%', m: 2, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tooltip title={
+            themeMode === 'dark' ? 'Dark theme' : 
+            themeMode === 'light' ? 'Light theme' : 
+            'System theme'
+          }>
+            <IconButton onClick={toggleTheme} color="primary">
+              {themeMode === 'dark' ? <DarkModeIcon /> : 
+               themeMode === 'light' ? <LightModeIcon /> : 
+               <SettingsIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Reset Password
