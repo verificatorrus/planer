@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
+  reload,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -62,6 +63,16 @@ export const signIn = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     
+    // Reload user to get the latest emailVerified status
+    // This is important after password reset, as Firebase may update emailVerified flag
+    await reload(userCredential.user);
+    
+    console.log('User signed in:', {
+      email: userCredential.user.email,
+      emailVerified: userCredential.user.emailVerified,
+      uid: userCredential.user.uid
+    });
+    
     // Check if email is verified
     if (!userCredential.user.emailVerified) {
       // Sign out immediately if email not verified
@@ -77,9 +88,24 @@ export const signIn = async (email: string, password: string) => {
     return { success: true, user: userCredential.user };
   } catch (error) {
     console.error('Sign in error:', error);
+    
+    // Provide more detailed error messages
+    let errorMessage = 'Failed to sign in';
+    if (error instanceof Error) {
+      if (error.message.includes('invalid-credential') || error.message.includes('wrong-password')) {
+        errorMessage = 'Invalid email or password';
+      } else if (error.message.includes('user-not-found')) {
+        errorMessage = 'No account found with this email';
+      } else if (error.message.includes('too-many-requests')) {
+        errorMessage = 'Too many failed attempts. Please try again later';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Failed to sign in' 
+      error: errorMessage
     };
   }
 };
@@ -102,9 +128,17 @@ export const signOut = async () => {
 // Listen to auth state changes
 export const onAuthChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, async (user) => {
-    if (user && user.emailVerified) {
-      await saveToken(user);
-      callback(user);
+    if (user) {
+      // Reload user to get the latest emailVerified status
+      await reload(user);
+      
+      if (user.emailVerified) {
+        await saveToken(user);
+        callback(user);
+      } else {
+        removeToken();
+        callback(null);
+      }
     } else {
       removeToken();
       callback(null);
