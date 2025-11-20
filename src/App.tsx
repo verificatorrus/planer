@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Card,
@@ -26,7 +26,6 @@ import {
   Fab,
   useMediaQuery,
   ThemeProvider,
-  createTheme,
   CssBaseline,
   Divider,
   Tooltip,
@@ -49,60 +48,18 @@ import {
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
+import { useThemeMode } from './hooks/useThemeMode'
 import './App.css'
 
 function AppContent() {
   const { user, logout } = useAuth()
-  
-  // Определяем системные предпочтения темы
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
-  
-  // Состояние для режима темы: 'light', 'dark', или 'system'
-  const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'system'>(() => {
-    const savedMode = localStorage.getItem('themeMode')
-    return (savedMode as 'light' | 'dark' | 'system') || 'system'
-  })
+  const { theme, themeMode, activeMode, toggleTheme } = useThemeMode()
   
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [bottomNavValue, setBottomNavValue] = useState(0)
 
-  // Определяем какую тему использовать
-  const activeMode = themeMode === 'system' 
-    ? (prefersDarkMode ? 'dark' : 'light')
-    : themeMode
-
-  // Создаем тему
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: activeMode,
-          primary: {
-            main: '#1976d2',
-          },
-          secondary: {
-            main: '#dc004e',
-          },
-        },
-      }),
-    [activeMode]
-  )
-
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-
-  // Сохраняем выбор темы в localStorage
-  useEffect(() => {
-    localStorage.setItem('themeMode', themeMode)
-  }, [themeMode])
-
-  // Обновляем meta theme-color для браузера
-  useEffect(() => {
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]')
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', activeMode === 'dark' ? '#121212' : '#1976d2')
-    }
-  }, [activeMode])
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open)
@@ -110,14 +67,6 @@ function AppContent() {
 
   const handleModalOpen = () => setModalOpen(true)
   const handleModalClose = () => setModalOpen(false)
-
-  const toggleTheme = () => {
-    setThemeMode((prev) => {
-      if (prev === 'system') return 'light'
-      if (prev === 'light') return 'dark'
-      return 'system'
-    })
-  }
 
   const handleLogout = async () => {
     await logout()
@@ -189,9 +138,7 @@ function AppContent() {
   )
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ pb: isMobile ? 7 : 0 }}>
+    <Box sx={{ pb: isMobile ? 7 : 0 }}>
         {/* AppBar с меню */}
         <AppBar position="sticky">
         <Toolbar>
@@ -553,17 +500,21 @@ function AppContent() {
         </Box>
       )}
       </Box>
-    </ThemeProvider>
   )
 }
 
 function App() {
+  const { theme } = useThemeMode()
+  
   return (
-    <AuthProvider>
-      <ProtectedRoute>
-        <AppContent />
-      </ProtectedRoute>
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <ProtectedRoute>
+          <AppContent />
+        </ProtectedRoute>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
