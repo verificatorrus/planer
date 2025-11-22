@@ -47,4 +47,4 @@ This project uses the following technology stack:
 - Preserve all existing functionality when making changes
 - Keep code simple and maintainable
 - Do not create helper scripts or temporary files unless explicitly requested
-
+- Application have only Russian translation

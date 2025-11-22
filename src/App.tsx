@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import {
   Box,
-  Card,
-  CardContent,
-  CardMedia,
-  CardActions,
   Button,
   Typography,
   AppBar,
@@ -16,14 +12,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Modal,
   Avatar,
   Badge,
   BottomNavigation,
   BottomNavigationAction,
   Container,
-  Grid,
-  Fab,
   useMediaQuery,
   ThemeProvider,
   CssBaseline,
@@ -39,8 +32,6 @@ import {
   Settings as SettingsIcon,
   Mail as MailIcon,
   Notifications as NotificationsIcon,
-  Add as AddIcon,
-  Dashboard as DashboardIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   Logout as LogoutIcon,
@@ -56,7 +47,6 @@ function AppContent() {
   const { theme, themeMode, activeMode, toggleTheme } = useThemeMode()
   
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
   const [bottomNavValue, setBottomNavValue] = useState(0)
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -64,9 +54,6 @@ function AppContent() {
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open)
   }
-
-  const handleModalOpen = () => setModalOpen(true)
-  const handleModalClose = () => setModalOpen(false)
 
   const handleLogout = async () => {
     await logout()
@@ -156,7 +143,7 @@ function AppContent() {
           )}
           
           <Typography variant="h6" component="div" sx={{ flexGrow: isMobile ? 1 : 0, mr: isMobile ? 0 : 4 }}>
-            MUI Demo
+            Planer
           </Typography>
           
           {/* Desktop навигация */}
@@ -235,252 +222,9 @@ function AppContent() {
       {/* Основной контент */}
       <Container maxWidth={isMobile ? "sm" : "lg"} sx={{ mt: 3, mb: 2 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
-          Демонстрация MUI компонентов
+          Добро пожаловать в Planer
         </Typography>
-        
-        <Typography variant="body1" paragraph align="center" color="text.secondary">
-          Mobile-first дизайн с основными компонентами Material-UI
-        </Typography>
-
-        {/* Информация о теме */}
-        <Box sx={{ mb: 3, p: 2, bgcolor: 'primary.main', color: 'primary.contrastText', borderRadius: 2, textAlign: 'center' }}>
-          <Typography variant="body1">
-            🎨 Текущая тема: <strong>{getThemeLabel()}</strong>
-            {themeMode === 'system' && ` (${activeMode === 'dark' ? 'темная' : 'светлая'} по системе)`}
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 1, opacity: 0.9 }}>
-            Переключайте тему через {isMobile ? 'меню слева' : 'иконку'} ☀️/🌙 в шапке
-          </Typography>
-        </Box>
-
-        {/* Cards */}
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Card>
-              <CardMedia
-                component="div"
-                sx={{
-                  height: 140,
-                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                }}
-              />
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                  Card компонент
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Это пример красивой карточки с градиентным фоном. Cards отлично подходят
-                  для отображения контента на мобильных устройствах и адаптируются под desktop.
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" color="primary">
-                  Узнать больше
-                </Button>
-                <Button size="small" color="secondary">
-                  Поделиться
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                    <FavoriteIcon />
-                  </Avatar>
-                  <Typography variant="h6">
-                    Card 2
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Компактная карточка с иконкой
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" onClick={handleModalOpen}>
-                  Открыть Modal
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Badge badgeContent={12} color="error">
-                    <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
-                      <MailIcon />
-                    </Avatar>
-                  </Badge>
-                  <Typography variant="h6">
-                    Card 3
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Avatar с Badge показывает уведомления
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" onClick={isMobile ? toggleDrawer(true) : handleModalOpen}>
-                  {isMobile ? 'Открыть Drawer' : 'Открыть Modal'}
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card sx={{ bgcolor: 'success.light' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  🎨 Цветная карточка
-                </Typography>
-                <Typography variant="body2">
-                  Cards могут иметь различные цвета и стили для выделения важной информации.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card sx={{ bgcolor: 'warning.light' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ bgcolor: 'warning.dark', mr: 2 }}>
-                    <DashboardIcon />
-                  </Avatar>
-                  <Typography variant="h6">
-                    Card 4
-                  </Typography>
-                </Box>
-                <Typography variant="body2">
-                  Адаптивный layout: на mobile - одна колонка, на tablet - две, на desktop - три колонки
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Badge badgeContent="NEW" color="secondary">
-                    <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
-                      <SettingsIcon />
-                    </Avatar>
-                  </Badge>
-                  <Typography variant="h6">
-                    Card 5
-                  </Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Badge может показывать не только цифры, но и текст
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card sx={{ bgcolor: 'info.light' }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  📱 Responsive Design
-                </Typography>
-                <Typography variant="body2">
-                  Mobile-first подход означает, что дизайн отлично работает на всех устройствах
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small">Действие</Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Демонстрация Avatar с различными Badge */}
-        <Box sx={{ mt: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Avatars с Badges
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mt: 2, justifyContent: 'center' }}>
-            <Badge badgeContent={3} color="primary">
-              <Avatar sx={{ bgcolor: 'primary.main' }}>A</Avatar>
-            </Badge>
-            <Badge badgeContent={99} color="error">
-              <Avatar sx={{ bgcolor: 'error.main' }}>B</Avatar>
-            </Badge>
-            <Badge
-              overlap="circular"
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              variant="dot"
-              color="success"
-            >
-              <Avatar sx={{ bgcolor: 'info.main' }}>C</Avatar>
-            </Badge>
-            <Badge badgeContent={5} color="secondary">
-              <Avatar sx={{ bgcolor: 'warning.main' }}>
-                <PersonIcon />
-              </Avatar>
-            </Badge>
-          </Box>
-        </Box>
       </Container>
-
-      {/* Modal */}
-      <Modal
-        open={modalOpen}
-        onClose={handleModalClose}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: { xs: '90%', sm: 400 },
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            borderRadius: 2,
-            p: 4,
-          }}
-        >
-          <Typography id="modal-title" variant="h6" component="h2" gutterBottom>
-            Modal окно
-          </Typography>
-          <Typography id="modal-description" sx={{ mt: 2 }}>
-            Это пример модального окна. Modal идеально подходит для отображения важной
-            информации или форм, требующих внимания пользователя.
-          </Typography>
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            <Button variant="outlined" onClick={handleModalClose}>
-              Отмена
-            </Button>
-            <Button variant="contained" onClick={handleModalClose}>
-              ОК
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
-      {/* Floating Action Button - только для mobile */}
-      {isMobile && (
-        <Fab
-          color="primary"
-          aria-label="add"
-          sx={{
-            position: 'fixed',
-            bottom: 72,
-            right: 16,
-          }}
-        >
-          <AddIcon />
-        </Fab>
-      )}
 
       {/* Bottom Navigation - только для mobile */}
       {isMobile && (
