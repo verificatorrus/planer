@@ -41,6 +41,7 @@ import { useAuth } from './context/AuthContext'
 import { useThemeMode } from './hooks/useThemeMode'
 import Dashboard from './pages/Dashboard'
 import TasksPage from './pages/TasksPage'
+import TaskDetailPage from './pages/TaskDetailPage'
 import CalendarPage from './pages/CalendarPage'
 import TagsPage from './pages/TagsPage'
 import SettingsPage from './pages/SettingsPage'
@@ -238,7 +239,7 @@ function AppContent() {
                 />
               }
             >
-              <Avatar alt="User Avatar" src="/broken-image.jpg" sx={{ bgcolor: 'secondary.main' }}>
+              <Avatar alt="User Avatar" sx={{ bgcolor: 'secondary.main' }}>
                 {user?.email?.[0]?.toUpperCase() || 'U'}
               </Avatar>
             </Badge>
@@ -267,6 +268,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/tasks/:id" element={<TaskDetailPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/tags" element={<TagsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthChange, signIn, signUp, signOut } from '../services/authService';
+import { userApi } from '../services/userService';
 
 interface AuthContextType {
   user: User | null;
@@ -36,7 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthChange((newUser) => {
+    const unsubscribe = onAuthChange(async (newUser) => {
+      if (newUser) {
+        try {
+          // Sync user with database
+          await userApi.syncUser();
+        } catch (error) {
+          console.error('Failed to sync user:', error);
+        }
+      }
       setUser(newUser);
       setLoading(false);
     });

@@ -5,6 +5,7 @@ import type { AppVersion, ApiResponse } from './db-types';
 import userRoutes from './routes/users';
 import taskRoutes from './routes/tasks';
 import tagRoutes from './routes/tags';
+import recurrenceRoutes from './routes/recurrence';
 
 const config: VerifyFirebaseAuthConfig = {
   projectId: 'planer-4ea92',
@@ -49,6 +50,7 @@ app.use('/api/*', async (c, next) => {
 app.route('/api/users', userRoutes);
 app.route('/api/tasks', taskRoutes);
 app.route('/api/tags', tagRoutes);
+app.route('/api/recurrence', recurrenceRoutes);
 
 // Get current user info (protected)
 app.get('/api/auth/me', async (c) => {

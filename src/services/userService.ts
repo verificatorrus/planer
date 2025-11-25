@@ -1,17 +1,32 @@
 // User API Client
+import { auth } from '../config/firebase';
 import type { User, UserUpdateInput, ApiResponse } from '../../worker/db-types';
 
-const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8787/api';
+const API_BASE = import.meta.env.PROD ? '/api' : '/api';
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+  const token = await user.getIdToken();
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  };
+}
 
 class UserApiClient {
   private async request<T>(
     endpoint: string,
     options?: RequestInit
   ): Promise<T> {
+    const headers = await getAuthHeaders();
+    
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...headers,
         ...options?.headers,
       },
     });
@@ -52,4 +67,3 @@ class UserApiClient {
 }
 
 export const userApi = new UserApiClient();
-

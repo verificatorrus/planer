@@ -10,6 +10,8 @@ import type {
   ApiResponse,
   TaskFilters,
   Tag,
+  TaskStatus,
+  TaskPriority,
 } from '../db-types';
 import { getUserByFirebaseUid, checkTaskAccess, logTaskHistory, buildTaskFilters } from '../utils/db-helpers';
 
@@ -120,12 +122,20 @@ taskRoutes.get('/', async (c) => {
     const filters: TaskFilters = {
       date_from: c.req.query('date_from'),
       date_to: c.req.query('date_to'),
-      status: c.req.query('status'),
-      priority: c.req.query('priority'),
       search: c.req.query('search'),
       include_shared: c.req.query('include_shared') === 'true',
       include_archived: c.req.query('include_archived') === 'true',
     };
+
+    const statusParam = c.req.query('status');
+    if (statusParam) {
+      filters.status = statusParam.split(',') as TaskStatus[];
+    }
+
+    const priorityParam = c.req.query('priority');
+    if (priorityParam) {
+      filters.priority = priorityParam.split(',') as TaskPriority[];
+    }
 
     const tagIdsParam = c.req.query('tag_ids');
     if (tagIdsParam) {

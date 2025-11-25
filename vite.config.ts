@@ -7,9 +7,7 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 export default defineConfig({
   plugins: [react(),
     cloudflare({
-      experimental: {
-        remoteBindings: true,
-      },
+      remoteBindings: true,
     }),
     ],
   // Capacitor uses file:// protocol, so we need to use relative paths
