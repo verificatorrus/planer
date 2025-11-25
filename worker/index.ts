@@ -2,6 +2,9 @@ import { Hono } from 'hono';
 import { verifyFirebaseAuth, getFirebaseToken } from '@hono/firebase-auth';
 import type { VerifyFirebaseAuthConfig, VerifyFirebaseAuthEnv } from '@hono/firebase-auth';
 import type { AppVersion, ApiResponse } from './db-types';
+import userRoutes from './routes/users';
+import taskRoutes from './routes/tasks';
+import tagRoutes from './routes/tags';
 
 const config: VerifyFirebaseAuthConfig = {
   projectId: 'planer-4ea92',
@@ -26,7 +29,7 @@ app.use('/api/*', verifyFirebaseAuth(config));
 app.use('/api/*', async (c, next) => {
   // Skip verification check for certain endpoints
   const path = new URL(c.req.url).pathname;
-  if (path === '/api/health' || path === '/api/auth/me') {
+  if (path === '/api/health' || path === '/api/auth/me' || path.startsWith('/api/users/sync')) {
     return next();
   }
   
@@ -41,6 +44,11 @@ app.use('/api/*', async (c, next) => {
   
   return next();
 });
+
+// Mount routes
+app.route('/api/users', userRoutes);
+app.route('/api/tasks', taskRoutes);
+app.route('/api/tags', tagRoutes);
 
 // Get current user info (protected)
 app.get('/api/auth/me', async (c) => {

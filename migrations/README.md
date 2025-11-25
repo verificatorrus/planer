@@ -10,6 +10,7 @@ This directory contains SQL migration files for the Cloudflare D1 database.
 ## Migration Files
 
 - `0001_initial_schema.sql` - Initial schema with app_version table
+- `0002_tasks_schema.sql` - Complete tasks system (users, tasks, tags, recurrence, sharing, friends, history)
 
 ## How to Run Migrations
 
@@ -31,20 +32,27 @@ npx wrangler d1 execute planer-db --file=migrations/XXXX_migration_name.sql --lo
 
 ## Database Schema
 
-### app_version
-Stores application version information for different platforms.
+### Core Tables
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | INTEGER | Primary key |
-| version | TEXT | Version string (e.g., "1.0.0") |
-| build_number | INTEGER | Build number |
-| platform | TEXT | Platform: 'web', 'android', 'ios' |
-| release_date | DATETIME | Release date |
-| notes | TEXT | Release notes |
-| is_current | INTEGER | Current version flag (0 or 1) |
-| created_at | DATETIME | Creation timestamp |
-| updated_at | DATETIME | Update timestamp |
+**app_version** - Application version information
+**users** - User accounts (synced from Firebase Auth)
+**tasks** - Main tasks table with priorities and statuses
+**tags** - User-specific tags for categorization
+**task_tags** - Many-to-many relation between tasks and tags
+
+### Recurrence System
+
+**task_recurrence** - Rules for recurring tasks (daily, weekly, monthly, etc.)
+**task_instances** - Generated instances of recurring tasks
+
+### Collaboration
+
+**shared_tasks** - Tasks shared between users with permissions
+**user_friends** - Friend connections for easier sharing
+
+### Audit
+
+**task_history** - Complete audit log of all task changes
 
 ## Useful Commands
 

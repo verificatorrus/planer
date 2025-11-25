@@ -22,52 +22,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+// Separate hook export to satisfy fast-refresh
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthChange((user) => {
-      setUser(user);
+    const unsubscribe = onAuthChange((newUser) => {
+      setUser(newUser);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   const login = async (email: string, password: string) => {
-    const result = await signIn(email, password);
-    if (result.success && result.user) {
-      setUser(result.user);
-    }
-    return {
-      success: result.success,
-      error: result.error,
-      requiresEmailVerification: result.requiresEmailVerification,
-    };
+    return await signIn(email, password);
   };
 
   const register = async (email: string, password: string) => {
-    const result = await signUp(email, password);
-    // Don't set user on registration - they need to verify email first
-    return {
-      success: result.success,
-      error: result.error,
-      message: result.message,
-      requiresEmailVerification: result.requiresEmailVerification,
-    };
+    return await signUp(email, password);
   };
 
   const logout = async () => {
@@ -84,5 +66,4 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
+}
