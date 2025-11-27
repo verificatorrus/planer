@@ -141,12 +141,13 @@ export function buildTaskFilters(
     bindings.push(userId);
   }
 
-  // Not deleted
-  conditions.push('tasks.is_deleted = 0');
-
-  // Archived filter
-  if (!filters.include_archived) {
-    conditions.push('tasks.is_archived = 0');
+  // Archive filter: is_deleted is used as archive flag
+  // When include_archived is true, show ONLY archived tasks (is_deleted = 1)
+  // When include_archived is false, show only active tasks (is_deleted = 0)
+  if (filters.include_archived) {
+    conditions.push('tasks.is_deleted = 1');
+  } else {
+    conditions.push('tasks.is_deleted = 0');
   }
 
   // Date range

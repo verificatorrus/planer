@@ -18,10 +18,14 @@ import { getUserByFirebaseUid, checkTaskAccess, logTaskHistory, buildTaskFilters
 type Bindings = Env & VerifyFirebaseAuthEnv;
 const taskRoutes = new Hono<{ Bindings: Bindings }>();
 
-// Helper: Get tasks with tags
-async function getTaskWithTags(db: D1Database, taskId: number): Promise<TaskWithTags | null> {
+// Helper: Get tasks with tags (includeArchived allows fetching archived tasks)
+async function getTaskWithTags(db: D1Database, taskId: number, includeArchived = false): Promise<TaskWithTags | null> {
+  const query = includeArchived
+    ? 'SELECT * FROM tasks WHERE id = ?'
+    : 'SELECT * FROM tasks WHERE id = ? AND is_deleted = 0';
+  
   const task = await db
-    .prepare('SELECT * FROM tasks WHERE id = ? AND is_deleted = 0')
+    .prepare(query)
     .bind(taskId)
     .first<Task>();
 
@@ -407,6 +411,60 @@ taskRoutes.delete('/:id', async (c) => {
     console.error('Error deleting task:', error);
     return c.json<ApiResponse<never>>(
       { success: false, error: 'Failed to delete task' },
+      500
+    );
+  }
+});
+
+// Restore task from archive
+taskRoutes.patch('/:id/restore', async (c) => {
+  try {
+    const idToken = getFirebaseToken(c);
+    if (!idToken) {
+      return c.json<ApiResponse<never>>({ success: false, error: 'Unauthorized' }, 401);
+    }
+
+    const user = await getUserByFirebaseUid(c.env.DB, idToken.uid);
+    if (!user) {
+      return c.json<ApiResponse<never>>({ success: false, error: 'User not found' }, 404);
+    }
+
+    const taskId = parseInt(c.req.param('id'), 10);
+
+    // Check if user is owner (need to check archived task)
+    const task = await c.env.DB
+      .prepare('SELECT user_id FROM tasks WHERE id = ?')
+      .bind(taskId)
+      .first<{ user_id: number }>();
+
+    if (!task) {
+      return c.json<ApiResponse<never>>({ success: false, error: 'Task not found' }, 404);
+    }
+
+    if (task.user_id !== user.id) {
+      return c.json<ApiResponse<never>>(
+        { success: false, error: 'Only owner can restore task' },
+        403
+      );
+    }
+
+    await c.env.DB.prepare(
+      'UPDATE tasks SET is_deleted = 0, deleted_at = NULL WHERE id = ?'
+    )
+      .bind(taskId)
+      .run();
+
+    // Log history
+    await logTaskHistory(c.env.DB, taskId, user.id, 'restored');
+
+    // Task is now restored, so we don't need includeArchived
+    const taskWithTags = await getTaskWithTags(c.env.DB, taskId);
+
+    return c.json<ApiResponse<TaskWithTags>>({ success: true, data: taskWithTags! });
+  } catch (error) {
+    console.error('Error restoring task:', error);
+    return c.json<ApiResponse<never>>(
+      { success: false, error: 'Failed to restore task' },
       500
     );
   }

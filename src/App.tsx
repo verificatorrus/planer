@@ -159,7 +159,9 @@ function AppContent() {
   )
 
   return (
-    <Box sx={{ pb: isMobile ? 7 : 0 }}>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ pb: isMobile ? 7 : 0 }}>
         {/* AppBar с меню */}
         <AppBar position="sticky">
         <Toolbar>
@@ -295,23 +297,19 @@ function AppContent() {
         </Box>
       )}
       </Box>
+    </ThemeProvider>
   )
 }
 
 function App() {
-  const { theme } = useThemeMode()
-  
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <ProtectedRoute>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </ProtectedRoute>
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      <ProtectedRoute>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </ProtectedRoute>
+    </AuthProvider>
   )
 }
 

@@ -8,9 +8,33 @@ import {
   Fab,
   ToggleButtonGroup,
   ToggleButton,
+  IconButton,
+  Button,
 } from '@mui/material';
-import { Add as AddIcon, CalendarMonth, ViewDay, ViewWeek } from '@mui/icons-material';
-import { format, startOfToday, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth } from 'date-fns';
+import { 
+  Add as AddIcon, 
+  CalendarMonth, 
+  ViewDay, 
+  ViewWeek,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from '@mui/icons-material';
+import { 
+  format, 
+  startOfToday, 
+  startOfWeek, 
+  startOfMonth, 
+  endOfDay, 
+  endOfWeek, 
+  endOfMonth,
+  addDays,
+  addWeeks,
+  addMonths,
+  subDays,
+  subWeeks,
+  subMonths,
+  isSameDay,
+} from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { taskApi } from '../services/taskService';
 import { tagApi } from '../services/tagService';
@@ -23,26 +47,25 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
+  const [currentDate, setCurrentDate] = useState<Date>(startOfToday());
   const [tasks, setTasks] = useState<TaskWithTags[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskWithTags | null>(null);
-  
-  const today = startOfToday();
 
   // Load tags
   useEffect(() => {
     loadTags();
   }, []);
 
-  // Load tasks when view changes
+  // Load tasks when view or date changes
   useEffect(() => {
     if (user) {
       loadTasks();
     }
-  }, [view, user]);
+  }, [view, currentDate, user]);
 
   const loadTags = async () => {
     try {
@@ -62,14 +85,14 @@ export default function Dashboard() {
       let dateTo: Date;
 
       if (view === 'day') {
-        dateFrom = today;
-        dateTo = endOfDay(today);
+        dateFrom = currentDate;
+        dateTo = endOfDay(currentDate);
       } else if (view === 'week') {
-        dateFrom = startOfWeek(today, { weekStartsOn: 1 });
-        dateTo = endOfWeek(today, { weekStartsOn: 1 });
+        dateFrom = startOfWeek(currentDate, { weekStartsOn: 1 });
+        dateTo = endOfWeek(currentDate, { weekStartsOn: 1 });
       } else {
-        dateFrom = startOfMonth(today);
-        dateTo = endOfMonth(today);
+        dateFrom = startOfMonth(currentDate);
+        dateTo = endOfMonth(currentDate);
       }
 
       const loadedTasks = await taskApi.getTasks({
@@ -113,12 +136,12 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
+  const handleArchiveTask = async (taskId: number) => {
     try {
       await taskApi.deleteTask(taskId);
       await loadTasks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete task');
+      setError(err instanceof Error ? err.message : 'Failed to archive task');
     }
   };
 
@@ -140,20 +163,48 @@ export default function Dashboard() {
     }
   };
 
+  // Navigation functions
+  const handlePreviousPeriod = () => {
+    if (view === 'day') {
+      setCurrentDate(subDays(currentDate, 1));
+    } else if (view === 'week') {
+      setCurrentDate(subWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(subMonths(currentDate, 1));
+    }
+  };
+
+  const handleNextPeriod = () => {
+    if (view === 'day') {
+      setCurrentDate(addDays(currentDate, 1));
+    } else if (view === 'week') {
+      setCurrentDate(addWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
+    }
+  };
+
+  const handleToday = () => {
+    setCurrentDate(startOfToday());
+  };
+
+  const isToday = isSameDay(currentDate, startOfToday());
+
   const getViewTitle = () => {
     if (view === 'day') {
-      return format(today, 'EEEE, d MMMM yyyy', { locale: ru });
+      return format(currentDate, 'EEEE, d MMMM yyyy', { locale: ru });
     } else if (view === 'week') {
-      const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-      return `Неделя с ${format(weekStart, 'd MMM', { locale: ru })}`;
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+      return `Неделя: ${format(weekStart, 'd MMM', { locale: ru })} - ${format(weekEnd, 'd MMM yyyy', { locale: ru })}`;
     } else {
-      return format(startOfMonth(today), 'LLLL yyyy', { locale: ru });
+      return format(currentDate, 'LLLL yyyy', { locale: ru });
     }
   };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 10 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h4" component="h1">
           Мои задачи
         </Typography>
@@ -176,16 +227,57 @@ export default function Dashboard() {
         </ToggleButtonGroup>
       </Box>
 
-      <Typography variant="h6" color="text.secondary" gutterBottom>
-        {getViewTitle()}
-      </Typography>
+      {/* Date navigation */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        mb: 2,
+        gap: 2,
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton 
+            onClick={handlePreviousPeriod}
+            size="small"
+            aria-label="previous period"
+          >
+            <ChevronLeftIcon />
+          </IconButton>
+          
+          <Typography 
+            variant="h6" 
+            color="text.secondary"
+            sx={{ minWidth: { xs: 'auto', sm: '300px' }, textAlign: 'center' }}
+          >
+            {getViewTitle()}
+          </Typography>
+          
+          <IconButton 
+            onClick={handleNextPeriod}
+            size="small"
+            aria-label="next period"
+          >
+            <ChevronRightIcon />
+          </IconButton>
+        </Box>
+
+        {!isToday && (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleToday}
+          >
+            Сегодня
+          </Button>
+        )}
+      </Box>
 
       <TaskList
         tasks={tasks}
         loading={loading}
         error={error}
         onEdit={handleEditTask}
-        onDelete={handleDeleteTask}
+        onArchive={handleArchiveTask}
         onDuplicate={handleDuplicateTask}
         onStatusChange={handleStatusChange}
         onTaskClick={handleTaskClick}

@@ -91,9 +91,27 @@ export default function TasksPage() {
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
+  const handleArchiveTask = async (taskId: number) => {
     try {
       await taskApi.deleteTask(taskId);
+      await loadTasks();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to archive task');
+    }
+  };
+
+  const handleRestoreTask = async (taskId: number) => {
+    try {
+      await taskApi.restoreTask(taskId);
+      await loadTasks();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to restore task');
+    }
+  };
+
+  const handleHardDeleteTask = async (taskId: number) => {
+    try {
+      await taskApi.hardDeleteTask(taskId);
       await loadTasks();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete task');
@@ -121,7 +139,7 @@ export default function TasksPage() {
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 10 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Все задачи
+        {filters.include_archived ? 'Архив задач' : 'Все задачи'}
       </Typography>
       
       <Box sx={{ mb: 3 }}>
@@ -152,10 +170,13 @@ export default function TasksPage() {
         loading={loading}
         error={error}
         onEdit={handleEditTask}
-        onDelete={handleDeleteTask}
+        onArchive={handleArchiveTask}
+        onRestore={handleRestoreTask}
+        onHardDelete={handleHardDeleteTask}
         onDuplicate={handleDuplicateTask}
         onStatusChange={handleStatusChange}
-        emptyMessage="Задачи не найдены"
+        emptyMessage={filters.include_archived ? 'Архив пуст' : 'Задачи не найдены'}
+        isArchiveView={!!filters.include_archived}
       />
 
       <TaskDialog
@@ -166,18 +187,20 @@ export default function TasksPage() {
         tags={tags}
       />
 
-      <Fab
-        color="primary"
-        aria-label="add task"
-        sx={{
-          position: 'fixed',
-          bottom: { xs: 72, md: 16 },
-          right: 16,
-        }}
-        onClick={handleCreateTask}
-      >
-        <AddIcon />
-      </Fab>
+      {!filters.include_archived && (
+        <Fab
+          color="primary"
+          aria-label="add task"
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 72, md: 16 },
+            right: 16,
+          }}
+          onClick={handleCreateTask}
+        >
+          <AddIcon />
+        </Fab>
+      )}
     </Container>
   );
 }

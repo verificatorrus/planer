@@ -8,11 +8,14 @@ interface TaskListProps {
   loading?: boolean;
   error?: string | null;
   onEdit: (task: TaskWithTags) => void;
-  onDelete: (taskId: number) => void;
+  onArchive: (taskId: number) => void;
+  onRestore?: (taskId: number) => void;
+  onHardDelete?: (taskId: number) => void;
   onDuplicate: (taskId: number) => void;
   onStatusChange: (taskId: number, status: TaskStatus) => void;
   onTaskClick?: (task: TaskWithTags) => void;
   emptyMessage?: string;
+  isArchiveView?: boolean;
 }
 
 export default function TaskList({
@@ -20,11 +23,14 @@ export default function TaskList({
   loading = false,
   error = null,
   onEdit,
-  onDelete,
+  onArchive,
+  onRestore,
+  onHardDelete,
   onDuplicate,
   onStatusChange,
   onTaskClick,
   emptyMessage = 'Нет задач',
+  isArchiveView = false,
 }: TaskListProps) {
   if (loading) {
     return (
@@ -57,13 +63,17 @@ export default function TaskList({
           key={task.id}
           task={task}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onArchive={onArchive}
+          onRestore={onRestore}
+          onHardDelete={onHardDelete}
           onDuplicate={onDuplicate}
           onStatusChange={onStatusChange}
           onClick={onTaskClick}
+          isArchived={isArchiveView}
         />
       ))}
     </Box>
   );
 }
+
 

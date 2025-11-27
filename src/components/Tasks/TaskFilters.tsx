@@ -10,8 +10,17 @@ import {
   FormControlLabel,
   Checkbox,
   Button,
+  Switch,
 } from '@mui/material';
-import { ExpandMore as ExpandMoreIcon, FilterList as FilterIcon } from '@mui/icons-material';
+import {
+  ExpandMore as ExpandMoreIcon,
+  FilterList as FilterIcon,
+  Archive as ArchiveIcon,
+} from '@mui/icons-material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { ru } from 'date-fns/locale';
 import type { TaskFilters, Tag, TaskPriority, TaskStatus } from '../../../worker/db-types';
 
 interface TaskFiltersProps {
@@ -36,6 +45,9 @@ const statusOptions: { value: TaskStatus; label: string }[] = [
 ];
 
 export default function TaskFilters({ filters, tags, onChange }: TaskFiltersProps) {
+  const dateFromValue = filters.date_from ? new Date(filters.date_from) : null;
+  const dateToValue = filters.date_to ? new Date(filters.date_to) : null;
+
   const handleStatusChange = (status: TaskStatus) => {
     const currentStatuses = Array.isArray(filters.status)
       ? filters.status
@@ -82,6 +94,20 @@ export default function TaskFilters({ filters, tags, onChange }: TaskFiltersProp
     });
   };
 
+  const handleDateFromChange = (date: string) => {
+    onChange({
+      ...filters,
+      date_from: date || undefined,
+    });
+  };
+
+  const handleDateToChange = (date: string) => {
+    onChange({
+      ...filters,
+      date_to: date || undefined,
+    });
+  };
+
   const handleClearFilters = () => {
     onChange({});
   };
@@ -104,111 +130,197 @@ export default function TaskFilters({ filters, tags, onChange }: TaskFiltersProp
     return filters.tag_ids?.includes(tagId) || false;
   };
 
+  const handleArchiveToggle = () => {
+    onChange({
+      ...filters,
+      include_archived: !filters.include_archived,
+    });
+  };
+
   const hasActiveFilters = !!(
     filters.status ||
     filters.priority ||
-    (filters.tag_ids && filters.tag_ids.length > 0)
+    (filters.tag_ids && filters.tag_ids.length > 0) ||
+    filters.date_from ||
+    filters.date_to
   );
 
   return (
-    <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ru}>
+      {/* Archive toggle */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
+          p: 2,
+          borderRadius: 1,
+          backgroundColor: filters.include_archived ? 'action.selected' : 'background.paper',
+          border: 1,
+          borderColor: filters.include_archived ? 'warning.main' : 'divider',
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FilterIcon />
-          <Typography>Фильтры</Typography>
-          {hasActiveFilters && (
-            <Chip label="Активны" size="small" color="primary" />
-          )}
+          <ArchiveIcon color={filters.include_archived ? 'warning' : 'action'} />
+          <Typography>
+            {filters.include_archived ? 'Архив' : 'Активные задачи'}
+          </Typography>
         </Box>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Status filter */}
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Статус
-            </Typography>
-            <FormGroup>
-              {statusOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  control={
-                    <Checkbox
-                      checked={isStatusChecked(option.value)}
-                      onChange={() => handleStatusChange(option.value)}
-                    />
-                  }
-                  label={option.label}
-                />
-              ))}
-            </FormGroup>
-          </Box>
+        <Switch
+          checked={!!filters.include_archived}
+          onChange={handleArchiveToggle}
+          color="warning"
+        />
+      </Box>
 
-          {/* Priority filter */}
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Приоритет
-            </Typography>
-            <FormGroup>
-              {priorityOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  control={
-                    <Checkbox
-                      checked={isPriorityChecked(option.value)}
-                      onChange={() => handlePriorityChange(option.value)}
-                    />
-                  }
-                  label={option.label}
-                />
-              ))}
-            </FormGroup>
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FilterIcon />
+            <Typography>Фильтры</Typography>
+            {hasActiveFilters && (
+              <Chip label="Активны" size="small" color="primary" />
+            )}
           </Box>
-
-          {/* Tags filter */}
-          {tags.length > 0 && (
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Date range filter */}
             <Box>
               <Typography variant="subtitle2" gutterBottom>
-                Теги
+                Период
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <DatePicker
+                  label="С"
+                  value={dateFromValue}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      const date = new Date(newValue);
+                      date.setHours(0, 0, 0, 0);
+                      handleDateFromChange(date.toISOString());
+                    } else {
+                      handleDateFromChange('');
+                    }
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: 'small',
+                    },
+                  }}
+                />
+                <DatePicker
+                  label="До"
+                  value={dateToValue}
+                  onChange={(newValue) => {
+                    if (newValue) {
+                      const date = new Date(newValue);
+                      date.setHours(23, 59, 59, 999);
+                      handleDateToChange(date.toISOString());
+                    } else {
+                      handleDateToChange('');
+                    }
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: 'small',
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Status filter */}
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Статус
               </Typography>
               <FormGroup>
-                {tags.map((tag) => (
+                {statusOptions.map((option) => (
                   <FormControlLabel
-                    key={tag.id}
+                    key={option.value}
                     control={
                       <Checkbox
-                        checked={isTagChecked(tag.id)}
-                        onChange={() => handleTagChange(tag.id)}
+                        checked={isStatusChecked(option.value)}
+                        onChange={() => handleStatusChange(option.value)}
                       />
                     }
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box
-                          sx={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            backgroundColor: tag.color,
-                          }}
-                        />
-                        {tag.name}
-                      </Box>
-                    }
+                    label={option.label}
                   />
                 ))}
               </FormGroup>
             </Box>
-          )}
 
-          {/* Clear filters button */}
-          {hasActiveFilters && (
-            <Button variant="outlined" onClick={handleClearFilters} size="small">
-              Сбросить фильтры
-            </Button>
-          )}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+            {/* Priority filter */}
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Приоритет
+              </Typography>
+              <FormGroup>
+                {priorityOptions.map((option) => (
+                  <FormControlLabel
+                    key={option.value}
+                    control={
+                      <Checkbox
+                        checked={isPriorityChecked(option.value)}
+                        onChange={() => handlePriorityChange(option.value)}
+                      />
+                    }
+                    label={option.label}
+                  />
+                ))}
+              </FormGroup>
+            </Box>
+
+            {/* Tags filter */}
+            {tags.length > 0 && (
+              <Box>
+                <Typography variant="subtitle2" gutterBottom>
+                  Теги
+                </Typography>
+                <FormGroup>
+                  {tags.map((tag) => (
+                    <FormControlLabel
+                      key={tag.id}
+                      control={
+                        <Checkbox
+                          checked={isTagChecked(tag.id)}
+                          onChange={() => handleTagChange(tag.id)}
+                        />
+                      }
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              backgroundColor: tag.color,
+                            }}
+                          />
+                          {tag.name}
+                        </Box>
+                      }
+                    />
+                  ))}
+                </FormGroup>
+              </Box>
+            )}
+
+            {/* Clear filters button */}
+            {hasActiveFilters && (
+              <Button variant="outlined" onClick={handleClearFilters} size="small">
+                Сбросить фильтры
+              </Button>
+            )}
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+    </LocalizationProvider>
   );
 }
+
 

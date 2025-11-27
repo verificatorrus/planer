@@ -21,7 +21,7 @@ import {
 import {
   ArrowBack as BackIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
+  Archive as ArchiveIcon,
   ContentCopy as CopyIcon,
   Repeat as RepeatIcon,
 } from '@mui/icons-material';
@@ -137,14 +137,14 @@ export default function TaskDetailPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!task || !confirm('Вы уверены, что хотите удалить эту задачу?')) return;
+  const handleArchive = async () => {
+    if (!task || !confirm('Переместить задачу в архив?')) return;
 
     try {
       await taskApi.deleteTask(task.id);
       navigate('/tasks');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete task');
+      setError(err instanceof Error ? err.message : 'Failed to archive task');
     }
   };
 
@@ -221,8 +221,8 @@ export default function TaskDetailPage() {
         <IconButton onClick={handleDuplicate}>
           <CopyIcon />
         </IconButton>
-        <IconButton onClick={handleDelete} color="error">
-          <DeleteIcon />
+        <IconButton onClick={handleArchive} color="warning">
+          <ArchiveIcon />
         </IconButton>
       </Box>
 
@@ -398,4 +398,5 @@ export default function TaskDetailPage() {
     </Container>
   );
 }
+
 

@@ -3,8 +3,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Fab } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { Calendar, dateFnsLocalizer, Views, type View } from 'react-big-calendar';
+import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { taskApi } from '../services/taskService';
 import { tagApi } from '../services/tagService';
@@ -40,13 +40,18 @@ export default function CalendarPage() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [currentView, setCurrentView] = useState<View>(Views.MONTH);
 
   useEffect(() => {
     loadTags();
+  }, []);
+
+  useEffect(() => {
     if (user) {
       loadTasks();
     }
-  }, [user]);
+  }, [user, currentDate, currentView]);
 
   const loadTags = async () => {
     try {
@@ -59,14 +64,9 @@ export default function CalendarPage() {
 
   const loadTasks = async () => {    
     try {
-      // Load tasks for current month +/- 1 month for better navigation
-      const start = new Date();
-      start.setMonth(start.getMonth() - 1);
-      start.setDate(1);
-      
-      const end = new Date();
-      end.setMonth(end.getMonth() + 2);
-      end.setDate(0);
+      // Load tasks for current period +/- 1 month for better navigation
+      const start = subMonths(startOfMonth(currentDate), 1);
+      const end = endOfMonth(addMonths(currentDate, 1));
 
       const loadedTasks = await taskApi.getTasks({
         date_from: start.toISOString(),
@@ -97,6 +97,14 @@ export default function CalendarPage() {
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     navigate(`/tasks/${event.id}`);
   }, [navigate]);
+
+  const handleNavigate = useCallback((date: Date) => {
+    setCurrentDate(date);
+  }, []);
+
+  const handleViewChange = useCallback((view: View) => {
+    setCurrentView(view);
+  }, []);
 
   const handleSaveTask = async (data: TaskCreateInput | TaskUpdateInput) => {
     try {
@@ -156,7 +164,6 @@ export default function CalendarPage() {
     month: 'Месяц',
     week: 'Неделя',
     day: 'День',
-    agenda: 'Список',
     date: 'Дата',
     time: 'Время',
     event: 'Событие',
@@ -179,10 +186,13 @@ export default function CalendarPage() {
           style={{ height: '100%' }}
           onSelectSlot={handleSelectSlot}
           onSelectEvent={handleSelectEvent}
+          onNavigate={handleNavigate}
+          onView={handleViewChange}
+          date={currentDate}
+          view={currentView}
           selectable
           popup
-          views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
-          defaultView={Views.MONTH}
+          views={[Views.MONTH, Views.WEEK, Views.DAY]}
           eventPropGetter={eventStyleGetter}
           messages={messages}
           culture="ru"

@@ -17,12 +17,14 @@ import {
 import {
   MoreVert as MoreIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon,
+  DeleteForever as DeleteForeverIcon,
   ContentCopy as CopyIcon,
   CheckCircle as DoneIcon,
   PlayArrow as InProgressIcon,
   Cancel as CancelIcon,
   Circle as PlannedIcon,
+  Archive as ArchiveIcon,
+  Unarchive as UnarchiveIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -31,10 +33,13 @@ import type { TaskWithTags, TaskStatus, TaskPriority } from '../../../worker/db-
 interface TaskCardProps {
   task: TaskWithTags;
   onEdit: (task: TaskWithTags) => void;
-  onDelete: (taskId: number) => void;
+  onArchive: (taskId: number) => void;
+  onRestore?: (taskId: number) => void;
+  onHardDelete?: (taskId: number) => void;
   onDuplicate: (taskId: number) => void;
   onStatusChange: (taskId: number, status: TaskStatus) => void;
   onClick?: (task: TaskWithTags) => void;
+  isArchived?: boolean;
 }
 
 const priorityColors: Record<TaskPriority, string> = {
@@ -78,10 +83,13 @@ const statusColors: Record<TaskStatus, string> = {
 export default function TaskCard({
   task,
   onEdit,
-  onDelete,
+  onArchive,
+  onRestore,
+  onHardDelete,
   onDuplicate,
   onStatusChange,
   onClick,
+  isArchived = false,
 }: TaskCardProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -100,11 +108,25 @@ export default function TaskCard({
     onEdit(task);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleArchive = (e: React.MouseEvent) => {
     e.stopPropagation();
     handleMenuClose();
-    if (confirm('Вы уверены, что хотите удалить эту задачу?')) {
-      onDelete(task.id);
+    if (confirm('Переместить задачу в архив?')) {
+      onArchive(task.id);
+    }
+  };
+
+  const handleRestore = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    onRestore?.(task.id);
+  };
+
+  const handleHardDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    if (confirm('Удалить задачу навсегда? Это действие нельзя отменить.')) {
+      onHardDelete?.(task.id);
     }
   };
 
@@ -126,8 +148,9 @@ export default function TaskCard({
     <Card
       sx={{
         cursor: onClick ? 'pointer' : 'default',
-        borderLeft: `4px solid ${priorityColors[task.priority]}`,
-        opacity: task.status === 'done' || task.status === 'canceled' ? 0.7 : 1,
+        borderLeft: `4px solid ${isArchived ? '#757575' : priorityColors[task.priority]}`,
+        opacity: isArchived || task.status === 'done' || task.status === 'canceled' ? 0.7 : 1,
+        backgroundColor: isArchived ? 'action.disabledBackground' : undefined,
         '&:hover': {
           boxShadow: 3,
         },
@@ -215,40 +238,57 @@ export default function TaskCard({
       </CardContent>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Редактировать</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleDuplicate}>
-          <ListItemIcon>
-            <CopyIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Дублировать</ListItemText>
-        </MenuItem>
-        {task.status !== 'done' && (
-          <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onStatusChange(task.id, 'done'); }}>
+        {isArchived ? [
+          // Menu for archived tasks
+          <MenuItem key="restore" onClick={handleRestore}>
             <ListItemIcon>
-              <DoneIcon fontSize="small" />
+              <UnarchiveIcon fontSize="small" color="success" />
             </ListItemIcon>
-            <ListItemText>Отметить выполненным</ListItemText>
-          </MenuItem>
-        )}
-        {task.status === 'planned' && (
-          <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onStatusChange(task.id, 'in_progress'); }}>
+            <ListItemText>Восстановить</ListItemText>
+          </MenuItem>,
+          <MenuItem key="hard-delete" onClick={handleHardDelete}>
             <ListItemIcon>
-              <InProgressIcon fontSize="small" />
+              <DeleteForeverIcon fontSize="small" color="error" />
             </ListItemIcon>
-            <ListItemText>Начать выполнение</ListItemText>
+            <ListItemText>Удалить навсегда</ListItemText>
           </MenuItem>
-        )}
-        <MenuItem onClick={handleDelete}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText>Удалить</ListItemText>
-        </MenuItem>
+        ] : [
+          // Menu for active tasks
+          <MenuItem key="edit" onClick={handleEdit}>
+            <ListItemIcon>
+              <EditIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Редактировать</ListItemText>
+          </MenuItem>,
+          <MenuItem key="duplicate" onClick={handleDuplicate}>
+            <ListItemIcon>
+              <CopyIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Дублировать</ListItemText>
+          </MenuItem>,
+          task.status !== 'done' && (
+            <MenuItem key="mark-done" onClick={(e) => { e.stopPropagation(); handleMenuClose(); onStatusChange(task.id, 'done'); }}>
+              <ListItemIcon>
+                <DoneIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Отметить выполненным</ListItemText>
+            </MenuItem>
+          ),
+          task.status === 'planned' && (
+            <MenuItem key="start" onClick={(e) => { e.stopPropagation(); handleMenuClose(); onStatusChange(task.id, 'in_progress'); }}>
+              <ListItemIcon>
+                <InProgressIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Начать выполнение</ListItemText>
+            </MenuItem>
+          ),
+          <MenuItem key="archive" onClick={handleArchive}>
+            <ListItemIcon>
+              <ArchiveIcon fontSize="small" color="warning" />
+            </ListItemIcon>
+            <ListItemText>В архив</ListItemText>
+          </MenuItem>
+        ]}
       </Menu>
     </Card>
   );

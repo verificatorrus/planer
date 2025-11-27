@@ -124,6 +124,13 @@ class TaskApiClient {
     });
   }
 
+  // Restore task from archive
+  async restoreTask(id: number): Promise<TaskWithTags> {
+    return this.request<TaskWithTags>(`/tasks/${id}/restore`, {
+      method: 'PATCH',
+    });
+  }
+
   // Duplicate task
   async duplicateTask(id: number): Promise<TaskWithTags> {
     return this.request<TaskWithTags>(`/tasks/${id}/duplicate`, {
