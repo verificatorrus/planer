@@ -1,57 +1,16 @@
 // Task API Client
-import { auth } from '../config/firebase';
+import { apiClient } from './apiClient';
 import type {
   TaskCreateInput,
   TaskUpdateInput,
   TaskWithTags,
-  ApiResponse,
   TaskFilters,
 } from '../../worker/db-types';
 
-const API_BASE = import.meta.env.PROD ? '/api' : '/api';
-
-async function getAuthHeaders(): Promise<HeadersInit> {
-  const user = auth.currentUser;
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  const token = await user.getIdToken();
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  };
-}
-
 class TaskApiClient {
-  private async request<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<T> {
-    const headers = await getAuthHeaders();
-    
-    const response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers: {
-        ...headers,
-        ...options?.headers,
-      },
-    });
-
-    const data: ApiResponse<T> = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || 'Request failed');
-    }
-
-    return data.data as T;
-  }
-
   // Create task
   async createTask(input: TaskCreateInput): Promise<TaskWithTags> {
-    return this.request<TaskWithTags>('/tasks', {
-      method: 'POST',
-      body: JSON.stringify(input),
-    });
+    return apiClient.post<TaskWithTags>('/tasks', input, { unwrapResponse: true });
   }
 
   // Get all tasks with filters
@@ -86,61 +45,47 @@ class TaskApiClient {
     const queryString = params.toString();
     const endpoint = queryString ? `/tasks?${queryString}` : '/tasks';
 
-    return this.request<TaskWithTags[]>(endpoint);
+    return apiClient.get<TaskWithTags[]>(endpoint, { unwrapResponse: true });
   }
 
   // Get single task
   async getTask(id: number): Promise<TaskWithTags> {
-    return this.request<TaskWithTags>(`/tasks/${id}`);
+    return apiClient.get<TaskWithTags>(`/tasks/${id}`, { unwrapResponse: true });
   }
 
   // Update task
   async updateTask(id: number, input: TaskUpdateInput): Promise<TaskWithTags> {
-    return this.request<TaskWithTags>(`/tasks/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(input),
-    });
+    return apiClient.put<TaskWithTags>(`/tasks/${id}`, input, { unwrapResponse: true });
   }
 
   // Update task status
   async updateTaskStatus(id: number, status: string): Promise<TaskWithTags> {
-    return this.request<TaskWithTags>(`/tasks/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
-    });
+    return apiClient.patch<TaskWithTags>(`/tasks/${id}/status`, { status }, { unwrapResponse: true });
   }
 
   // Delete task (soft)
   async deleteTask(id: number): Promise<{ id: number }> {
-    return this.request<{ id: number }>(`/tasks/${id}`, {
-      method: 'DELETE',
-    });
+    return apiClient.delete<{ id: number }>(`/tasks/${id}`, { unwrapResponse: true });
   }
 
   // Hard delete task
   async hardDeleteTask(id: number): Promise<{ id: number }> {
-    return this.request<{ id: number }>(`/tasks/${id}/hard`, {
-      method: 'DELETE',
-    });
+    return apiClient.delete<{ id: number }>(`/tasks/${id}/hard`, { unwrapResponse: true });
   }
 
   // Restore task from archive
   async restoreTask(id: number): Promise<TaskWithTags> {
-    return this.request<TaskWithTags>(`/tasks/${id}/restore`, {
-      method: 'PATCH',
-    });
+    return apiClient.patch<TaskWithTags>(`/tasks/${id}/restore`, undefined, { unwrapResponse: true });
   }
 
   // Duplicate task
   async duplicateTask(id: number): Promise<TaskWithTags> {
-    return this.request<TaskWithTags>(`/tasks/${id}/duplicate`, {
-      method: 'POST',
-    });
+    return apiClient.post<TaskWithTags>(`/tasks/${id}/duplicate`, undefined, { unwrapResponse: true });
   }
 
   // Get task history
   async getTaskHistory(id: number): Promise<unknown[]> {
-    return this.request<unknown[]>(`/tasks/${id}/history`);
+    return apiClient.get<unknown[]>(`/tasks/${id}/history`, { unwrapResponse: true });
   }
 
   // Get tasks for specific day

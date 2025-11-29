@@ -1,4 +1,5 @@
 import { getToken, refreshToken } from './authService';
+import type { ApiResponse } from '../../worker/db-types';
 
 export class ApiError extends Error {
   public status: number;
@@ -14,13 +15,14 @@ export class ApiError extends Error {
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
+  unwrapResponse?: boolean;
 }
 
 const API_BASE_URL = '/api';
 
 export const apiClient = {
   async fetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-    const { skipAuth, ...fetchOptions } = options;
+    const { skipAuth, unwrapResponse = false, ...fetchOptions } = options;
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -63,7 +65,22 @@ export const apiClient = {
       );
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // If unwrapResponse is true, handle ApiResponse wrapper
+    if (unwrapResponse) {
+      const apiResponse = data as ApiResponse<T>;
+      if (!apiResponse.success) {
+        throw new ApiError(
+          apiResponse.error || 'Request failed',
+          response.status,
+          apiResponse
+        );
+      }
+      return apiResponse.data as T;
+    }
+
+    return data;
   },
 
   get<T>(endpoint: string, options?: FetchOptions): Promise<T> {
@@ -82,6 +99,14 @@ export const apiClient = {
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  },
+
+  patch<T>(endpoint: string, data?: any, options?: FetchOptions): Promise<T> {
+    return this.fetch<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
   },
