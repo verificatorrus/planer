@@ -47,8 +47,9 @@
 	 */
 	"env": {
 		"dev": {
+			"name": "planer-dev",
 			"vars": {
-				"MY_NAME": "Egor",
+				"MY_NAME": "Egor-dev",
 				"PUBLIC_JWK_CACHE_KEY": "firebase-auth-jwk-cache"
 			},
 			"d1_databases": [
