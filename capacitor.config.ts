@@ -4,11 +4,11 @@ const config: CapacitorConfig = {
   appId: 'com.planer.app',
   appName: 'Planer',
   webDir: 'dist/client',
-  server: {
-    url: 'https://planer.quicpro.workers.dev',
-    androidScheme: 'https',
-    iosScheme: 'https',
-  },
+  // server: {
+  //   url: 'https://planer.quicpro.workers.dev',
+  //   androidScheme: 'https',
+  //   iosScheme: 'https',
+  // },
   "plugins": {
     "EdgeToEdge": {
       "backgroundColor": "#000000"

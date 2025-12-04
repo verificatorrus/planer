@@ -1,11 +1,12 @@
+import { Capacitor } from '@capacitor/core';
 import { getToken, refreshToken } from './authService';
 import type { ApiResponse } from '../../worker/db-types';
 
 export class ApiError extends Error {
   public status: number;
-  public data?: any;
+  public data?: unknown;
 
-  constructor(message: string, status: number, data?: any) {
+  constructor(message: string, status: number, data?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
@@ -18,7 +19,25 @@ interface FetchOptions extends RequestInit {
   unwrapResponse?: boolean;
 }
 
-const API_BASE_URL = '/api';
+// Use full domain for native mobile apps, relative path for web
+const getApiBaseUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  
+  // If VITE_API_BASE_URL is explicitly set, use it
+  if (baseUrl) {
+    return `${baseUrl}/api`;
+  }
+  
+  // For native mobile apps, use the full domain
+  if (Capacitor.isNativePlatform()) {
+    return 'https://planer.quicpro.workers.dev/api';
+  }
+  
+  // For web builds, use relative path
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const apiClient = {
   async fetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
@@ -87,7 +106,7 @@ export const apiClient = {
     return this.fetch<T>(endpoint, { ...options, method: 'GET' });
   },
 
-  post<T>(endpoint: string, data?: any, options?: FetchOptions): Promise<T> {
+  post<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -95,7 +114,7 @@ export const apiClient = {
     });
   },
 
-  put<T>(endpoint: string, data?: any, options?: FetchOptions): Promise<T> {
+  put<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -103,7 +122,7 @@ export const apiClient = {
     });
   },
 
-  patch<T>(endpoint: string, data?: any, options?: FetchOptions): Promise<T> {
+  patch<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
     return this.fetch<T>(endpoint, {
       ...options,
       method: 'PATCH',
