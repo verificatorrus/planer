@@ -24,7 +24,9 @@ import {
   Archive as ArchiveIcon,
   ContentCopy as CopyIcon,
   Repeat as RepeatIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
+import { Share } from '@capacitor/share';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { taskApi } from '../services/taskService';
@@ -187,6 +189,22 @@ export default function TaskDetailPage() {
     }
   };
 
+  const handleShare = async () => {
+    if (!task) return;
+
+    try {
+      const shareUrl = `${window.location.origin}/tasks/${task.id}`;
+      await Share.share({
+        title: task.title,
+        text: `${task.title}\n\n${task.description || ''}`,
+        url: shareUrl,
+        dialogTitle: 'Share task',
+      });
+    } catch (err) {
+      console.error('Error sharing task:', err);
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth="md" sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
@@ -215,6 +233,9 @@ export default function TaskDetailPage() {
         <Typography variant="h4" component="h1" sx={{ flex: 1 }}>
           {task.title}
         </Typography>
+        <IconButton onClick={handleShare}>
+          <ShareIcon />
+        </IconButton>
         <IconButton onClick={handleEdit}>
           <EditIcon />
         </IconButton>

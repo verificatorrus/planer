@@ -25,7 +25,9 @@ import {
   Circle as PlannedIcon,
   Archive as ArchiveIcon,
   Unarchive as UnarchiveIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
+import { Share } from '@capacitor/share';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { TaskWithTags, TaskStatus, TaskPriority } from '../../../worker/db-types';
@@ -134,6 +136,23 @@ export default function TaskCard({
     e.stopPropagation();
     handleMenuClose();
     onDuplicate(task.id);
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    
+    try {
+      const shareUrl = `https://planer.quicpro.workers.dev/tasks/${task.id}`;
+      await Share.share({
+        title: task.title,
+        text: `${task.title}\n\n${task.description || ''}`,
+        url: shareUrl,
+        dialogTitle: 'Share task',
+      });
+    } catch (err) {
+      console.error('Error sharing task:', err);
+    }
   };
 
   const handleCardClick = () => {
@@ -265,6 +284,12 @@ export default function TaskCard({
               <CopyIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Дублировать</ListItemText>
+          </MenuItem>,
+          <MenuItem key="share" onClick={handleShare}>
+            <ListItemIcon>
+              <ShareIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Поделиться</ListItemText>
           </MenuItem>,
           task.status !== 'done' && (
             <MenuItem key="mark-done" onClick={(e) => { e.stopPropagation(); handleMenuClose(); onStatusChange(task.id, 'done'); }}>
