@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { verifyFirebaseAuth, getFirebaseToken } from '@hono/firebase-auth';
 import type { VerifyFirebaseAuthConfig, VerifyFirebaseAuthEnv } from '@hono/firebase-auth';
 import type { AppVersion, ApiResponse } from './db-types';
@@ -14,6 +15,16 @@ const config: VerifyFirebaseAuthConfig = {
 type Bindings = Env & VerifyFirebaseAuthEnv;
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+// CORS middleware - must be before all other middleware
+app.use('/*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  exposeHeaders: ['Content-Length'],
+  maxAge: 86400,
+  credentials: false,
+}));
 
 // Health check endpoint (public, no auth required)
 app.get('/api/health', async (c) => {

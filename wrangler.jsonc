@@ -55,15 +55,15 @@
 			"d1_databases": [
 				{
 					"binding": "DB",
-					"database_name": "planer-db",
-					"database_id": "b76a6cd6-0697-4e0f-a65a-62f0d1eea0db",
+					"database_name": "planer-db-dev",
+					"database_id": "6d406871-bd54-4112-b107-a873c58e5213",
 					"remote": true
 				}
 			],
 			"kv_namespaces": [
 				{
 					"binding": "PUBLIC_JWK_CACHE_KV",
-					"id": "add86b2f4dca4439b0afe753fa1d3553",
+					"id": "a9ac360e4f9546be94d8a1bbb7b0e819",
 					"remote": true
 				}
 			]
