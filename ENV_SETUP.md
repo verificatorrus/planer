@@ -67,3 +67,4 @@ const getApiBaseUrl = () => {
 
 Функция `Capacitor.isNativePlatform()` возвращает `true` только когда приложение работает на реальном устройстве или эмуляторе (Android/iOS).
 
+
